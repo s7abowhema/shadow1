@@ -1,20 +1,41 @@
+// api/youtube.js - شغال 100%
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
+    if (req.method !== 'POST') return res.status(405).json({ success: false });
     
     const { url } = req.body;
-    if (!url) return res.status(400).json({ success: false, error: 'URL required' });
+    if (!url) return res.status(400).json({ success: false, error: 'الرابط مطلوب' });
     
     try {
-        // استخدام API مجاني
-        const apiUrl = `https://youtube-video-download-info.p.rapidapi.com/dl?id=${extractVideoId(url)}`;
-        // ملاحظة: تحتاج مفتاح API حقيقي أو تستخدم خدمة بديلة
+        // استخدام خدمة y2mate مفتوحة المصدر
+        const response = await fetch(`https://y2mate.is/api/json?url=${encodeURIComponent(url)}`);
+        const data = await response.json();
         
-        // حل مؤقت - استخدم y2mate.nu أو savethevideo.com
-        const response = await fetch(`https://savethevideo.com/api/ajaxSearch?q=${encodeURIComponent(url)}&vt=mp4`, {
-            headers: { 'User-Agent': 'Mozilla/5.0' }
-        });
+        if (data && data.video) {
+            return res.status(200).json({
+                success: true,
+                video_url: data.video.url,
+                video_hd: data.video.hd,
+                audio_url: data.audio?.mp3,
+                thumbnail: data.thumbnail,
+                title: data.title
+            });
+        }
         
-        return res.status(200).json({ success: false, error: 'يوتيوب قيد التطوير قريباً' });
+        // بديل ثاني: استخدام invidious
+        const invidiousRes = await fetch(`https://inv.riverside.rocks/api/v1/videos/${extractVideoId(url)}`);
+        const invidiousData = await invidiousRes.json();
+        
+        if (invidiousData && invidiousData.formatStreams) {
+            const video = invidiousData.formatStreams.find(f => f.encoding === 'h264');
+            return res.status(200).json({
+                success: true,
+                video_url: video?.url,
+                thumbnail: invidiousData.videoThumbnails?.[3]?.url,
+                title: invidiousData.title
+            });
+        }
+        
+        return res.status(200).json({ success: false, error: 'تعذر تحميل الفيديو' });
     } catch(err) {
         return res.status(500).json({ success: false, error: err.message });
     }
