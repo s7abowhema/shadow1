@@ -1,10 +1,4 @@
 {
-    "functions": {
-        "api/tiktok.js": {
-            "runtime": "nodejs18.x",
-            "maxDuration": 30
-        }
-    },
     "rewrites": [
         {
             "source": "/(.*)",
