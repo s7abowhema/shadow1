@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحميل من تيك توك</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .sub {
+            color: #aaa;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        input {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            background: white;
+            outline: none;
+            min-width: 200px;
+        }
+        button {
+            padding: 15px 30px;
+            background: #ff0050;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #e60046;
+            transform: scale(1.02);
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            color: white;
+            margin: 20px 0;
+        }
+        .result {
+            display: none;
+            margin-top: 25px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 20px;
+            padding: 20px;
+        }
+        .video-preview video {
+            width: 100%;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+        .download-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .download-btn {
+            flex: 1;
+            text-align: center;
+            background: #25f4ee;
+            color: #000;
+            padding: 12px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .download-btn.watermark {
+            background: #fe2c55;
+            color: white;
+        }
+        .error {
+            color: #ff6b6b;
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+        }
+        .info {
+            color: #aaa;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        @media (max-width: 500px) {
+            .container { padding: 25px; }
+            button { padding: 12px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📥 تحميل فيديو تيك توك</h1>
+        <div class="sub">الصق رابط الفيديو ثم اضغط تحميل</div>
+        
+        <div class="input-group">
+            <input type="text" id="urlInput" placeholder="https://www.tiktok.com/@user/video/123456789">
+            <button id="downloadBtn">📲 تحميل</button>
+        </div>
+        
+        <div class="loading" id="loading">⏳ جاري المعالجة...</div>
+        <div class="result" id="result"></div>
+        <div class="error" id="error"></div>
+        <div class="info">💡 تأكد من أن الرابط صحيح ومتاح للعموم</div>
+    </div>
+
+    <script>
+        const API_URL = '/api/tiktok';
+
+        document.getElementById('downloadBtn').addEventListener('click', async () => {
+            const url = document.getElementById('urlInput').value.trim();
+            if (!url) {
+                showError('الرجاء إدخال رابط الفيديو');
+                return;
+            }
+            
+            if (!url.includes('tiktok.com')) {
+                showError('الرجاء إدخال رابط صحيح من تيك توك');
+                return;
+            }
+            
+            showLoading(true);
+            hideResult();
+            hideError();
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'فشل تحميل الفيديو');
+                }
+                
+                displayResult(data);
+            } catch (err) {
+                showError(err.message || 'حدث خطأ، حاول مرة أخرى');
+            } finally {
+                showLoading(false);
+            }
+        });
+        
+        function displayResult(data) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <div class="video-preview">
+                    ${data.thumbnail ? `<img src="${data.thumbnail}" style="width:100%; border-radius:15px; margin-bottom:15px;">` : ''}
+                    ${data.video_url ? `<video controls src="${data.video_url}" style="width:100%; border-radius:15px; margin-bottom:15px;"></video>` : ''}
+                </div>
+                <div class="download-links">
+                    ${data.video_url ? `<a href="${data.video_url}" class="download-btn" download>🎬 بدون علامة مائية</a>` : ''}
+                    ${data.video_watermark ? `<a href="${data.video_watermark}" class="download-btn watermark" download>💧 مع علامة مائية</a>` : ''}
+                    ${data.music_url ? `<a href="${data.music_url}" class="download-btn">🎵 تحميل الصوت فقط</a>` : ''}
+                </div>
+            `;
+            resultDiv.style.display = 'block';
+        }
+        
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('downloadBtn').disabled = show;
+        }
+        
+        function showError(msg) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = msg;
+            errorDiv.style.display = 'block';
+        }
+        
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+        
+        function hideResult() {
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('result').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
