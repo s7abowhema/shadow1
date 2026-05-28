@@ -270,6 +270,17 @@
             background: rgba(255,255,255,0.1);
             color: white;
         }
+
+        .btn-quality {
+            background: #3a3a5e;
+            margin: 5px;
+            padding: 8px 15px;
+            font-size: 12px;
+        }
+
+        .btn-quality.active {
+            background: #ff0050;
+        }
     </style>
 </head>
 <body>
@@ -351,7 +362,8 @@
                 <div class="input-group">
                     <input type="text" id="youtubeUrl" placeholder="https://www.youtube.com/watch?v=...">
                     <button class="btn-paste" onclick="pasteToInput('youtubeUrl')">📋 لصق</button>
-                    <button onclick="downloadMedia('youtube')">📲 تحميل</button>
+                    <button onclick="downloadYouTube()">📲 تحميل فيديو</button>
+                    <button onclick="downloadYouTubeAudio()" style="background:#25f4ee;color:#000;">🎵 تحميل صوت</button>
                 </div>
                 <div id="youtubeQuality" class="quality-select" style="display:none;"></div>
                 <div id="youtubeLoading" class="loading">⏳ جاري...</div>
@@ -442,6 +454,8 @@
     </div>
 
     <script>
+        let currentQuality = '720';
+        
         function goToPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
@@ -475,6 +489,104 @@
             div.style.cssText = `position:fixed;bottom:20px;left:20px;background:${bgColor};color:white;padding:12px 24px;border-radius:50px;z-index:9999;font-weight:bold;box-shadow:0 4px 12px rgba(0,0,0,0.3);`;
             document.body.appendChild(div);
             setTimeout(() => div.remove(), 2500);
+        }
+        
+        // دوال يوتيوب المطورة
+        async function downloadYouTube() {
+            const url = document.getElementById('youtubeUrl').value.trim();
+            if (!url) {
+                showError('youtube', 'الرجاء إدخال رابط يوتيوب');
+                return;
+            }
+            
+            showLoading('youtube', true);
+            hideResult('youtube');
+            hideError('youtube');
+            
+            try {
+                const response = await fetch('/api/youtube', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url, type: 'video', quality: currentQuality })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'فشل في التحميل');
+                }
+                
+                displayYouTubeResult(data);
+            } catch (error) {
+                showError('youtube', error.message || 'حدث خطأ، حاول مرة أخرى');
+            } finally {
+                showLoading('youtube', false);
+            }
+        }
+        
+        async function downloadYouTubeAudio() {
+            const url = document.getElementById('youtubeUrl').value.trim();
+            if (!url) {
+                showError('youtube', 'الرجاء إدخال رابط يوتيوب');
+                return;
+            }
+            
+            showLoading('youtube', true);
+            hideResult('youtube');
+            hideError('youtube');
+            
+            try {
+                const response = await fetch('/api/youtube', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url, type: 'audio' })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'فشل تحميل الصوت');
+                }
+                
+                displayYouTubeAudioResult(data);
+            } catch (error) {
+                showError('youtube', error.message || 'حدث خطأ، حاول مرة أخرى');
+            } finally {
+                showLoading('youtube', false);
+            }
+        }
+        
+        function displayYouTubeResult(data) {
+            const resultDiv = document.getElementById('youtubeResult');
+            resultDiv.innerHTML = `
+                <div style="margin-bottom:15px;">
+                    ${data.thumbnail ? `<img src="${data.thumbnail}" style="width:100%; border-radius:15px; margin-bottom:10px;">` : ''}
+                    <h3 style="color:white; margin:10px 0;">${data.title || 'فيديو يوتيوب'}</h3>
+                    ${data.author ? `<p style="color:#aaa;">👤 ${data.author}</p>` : ''}
+                    ${data.duration ? `<p style="color:#aaa;">⏱️ ${data.duration}</p>` : ''}
+                    ${data.quality ? `<p style="color:#aaa;">📺 الجودة: ${data.quality}</p>` : ''}
+                </div>
+                <div class="download-links">
+                    ${data.video_url ? `<a href="${data.video_url}" class="download-btn" download="youtube_video.mp4">📥 تحميل فيديو (${data.quality || 'MP4'})</a>` : ''}
+                </div>
+            `;
+            resultDiv.style.display = 'block';
+        }
+        
+        function displayYouTubeAudioResult(data) {
+            const resultDiv = document.getElementById('youtubeResult');
+            resultDiv.innerHTML = `
+                <div style="margin-bottom:15px;">
+                    ${data.thumbnail ? `<img src="${data.thumbnail}" style="width:100%; border-radius:15px; margin-bottom:10px;">` : ''}
+                    <h3 style="color:white; margin:10px 0;">${data.title || 'صوت يوتيوب'}</h3>
+                    ${data.author ? `<p style="color:#aaa;">👤 ${data.author}</p>` : ''}
+                    ${data.duration ? `<p style="color:#aaa;">⏱️ ${data.duration}</p>` : ''}
+                </div>
+                <div class="download-links">
+                    ${data.audio_url ? `<a href="${data.audio_url}" class="download-btn" download="youtube_audio.mp3">🎵 تحميل الصوت MP3</a>` : ''}
+                </div>
+            `;
+            resultDiv.style.display = 'block';
         }
         
         async function downloadMedia(platform) {
