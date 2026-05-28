@@ -18,7 +18,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ success: false, error: 'الرابط مطلوب' });
     }
     
-    // استخراج ID الفيديو
+    // استخراج ID الفيديو من رابط يوتيوب
     function extractVideoId(url) {
         const patterns = [
             /(?:youtube\.com\/watch\?v=)([^&]+)/,
@@ -40,96 +40,64 @@ export default async function handler(req, res) {
     }
     
     try {
-        // المصدر الأول: Piped API
-        const pipedResponse = await fetch(`https://pipedapi.kavin.rocks/streams/${videoId}`);
-        
-        if (pipedResponse.ok) {
-            const data = await pipedResponse.json();
-            const videoStreams = data.videoStreams || [];
-            const audioStreams = data.audioStreams || [];
-            
-            const bestVideo = videoStreams.find(v => v.quality === '720p') || 
-                            videoStreams.find(v => v.quality === '480p') ||
-                            videoStreams[videoStreams.length - 1];
-            
-            const bestAudio = audioStreams.find(a => a.quality === 'medium') || 
-                            audioStreams[audioStreams.length - 1];
-            
-            if (bestVideo?.url) {
-                return res.status(200).json({
-                    success: true,
-                    title: data.title || 'فيديو يوتيوب',
-                    thumbnail: data.thumbnailUrl || `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
-                    video_url: bestVideo.url,
-                    audio_url: bestAudio?.url || null,
-                    author: data.uploader || '',
-                    duration: data.duration || 0
-                });
-            }
-        }
-        
-        // المصدر الثاني: Invidious API
-        const invidiousResponse = await fetch(`https://invidious.io.lol/api/v1/videos/${videoId}`);
-        
-        if (invidiousResponse.ok) {
-            const data = await invidiousResponse.json();
-            const videoFormats = data.formatStreams || [];
-            
-            const video = videoFormats.find(f => f.type === 'video/mp4' && f.qualityLabel === '720p') ||
-                        videoFormats.find(f => f.type === 'video/mp4');
-            const audio = videoFormats.find(f => f.type === 'audio/mp4');
-            
-            if (video?.url) {
-                return res.status(200).json({
-                    success: true,
-                    title: data.title || 'فيديو يوتيوب',
-                    thumbnail: data.videoThumbnails?.[3]?.url || `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
-                    video_url: video.url,
-                    audio_url: audio?.url || null,
-                    author: data.author || '',
-                    duration: data.lengthSeconds || 0
-                });
-            }
-        }
-        
-        // المصدر الثالث: Cobalt API
-        const cobaltResponse = await fetch('https://api.cobalt.tools/api/json', {
-            method: 'POST',
+        // استخدام خدمة y2mate.is (شغالة ومجانية)
+        const y2mateApi = `https://y2mate.is/api/json?url=${encodeURIComponent(url)}`;
+        const response = await fetch(y2mateApi, {
             headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                url: url,
-                videoQuality: '720',
-                audioFormat: 'mp3'
-            })
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
         });
         
-        if (cobaltResponse.ok) {
-            const cobaltData = await cobaltResponse.json();
-            if (cobaltData.url) {
+        if (response.ok) {
+            const data = await response.json();
+            
+            if (data && data.video && data.video.url) {
                 return res.status(200).json({
                     success: true,
-                    title: 'فيديو يوتيوب',
-                    thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
-                    video_url: cobaltData.url,
-                    audio_url: cobaltData.audio || null
+                    title: data.title || 'فيديو يوتيوب',
+                    thumbnail: data.thumbnail || `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+                    video_url: data.video.url,
+                    audio_url: data.audio?.mp3 || null,
+                    author: data.author || ''
                 });
             }
         }
         
-        // لو كل المصادر فشلت
-        return res.status(404).json({ 
-            success: false, 
-            error: 'تعذر تحميل الفيديو. تأكد من الرابط وحاول مرة أخرى' 
+        // API بديل: yt5s
+        const yt5sApi = `https://yt5s.com/api/ajaxSearch?q=${encodeURIComponent(url)}`;
+        const response2 = await fetch(yt5sApi, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'User-Agent': 'Mozilla/5.0'
+            },
+            body: new URLSearchParams({ q: url, vt: 'mp4' })
+        });
+        
+        if (response2.ok) {
+            const data2 = await response2.json();
+            if (data2 && data2.links && data2.links.mp4) {
+                return res.status(200).json({
+                    success: true,
+                    title: data2.title || 'فيديو يوتيوب',
+                    thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+                    video_url: data2.links.mp4['720p'] || data2.links.mp4['480p'] || Object.values(data2.links.mp4)[0],
+                    author: data2.author || ''
+                });
+            }
+        }
+        
+        // لو كل حاجة فشلت
+        return res.status(404).json({
+            success: false,
+            error: 'تعذر تحميل الفيديو. تأكد من الرابط وحاول مرة أخرى'
         });
         
     } catch (error) {
         console.error('YouTube API Error:', error);
-        return res.status(500).json({ 
-            success: false, 
-            error: 'حدث خطأ في الخادم: ' + error.message 
+        return res.status(500).json({
+            success: false,
+            error: 'حدث خطأ: ' + error.message
         });
     }
 }
