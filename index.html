@@ -3,76 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تحميل من تيك توك</title>
+    <title>تحميل فيديوهات - 8 منصات | تيك توك | يوتيوب | انستقرام | سبوتيفاي | فيسبوك | تويتر | بينترست</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            background: linear-gradient(135deg, #0f0f1a, #1a1a2e);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
         }
-        .container {
+        
+        .sidebar {
+            width: 280px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(15px);
+            padding: 25px 15px;
+            border-left: 1px solid rgba(255,255,255,0.1);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            right: 0;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .sidebar h3 {
+            color: white;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 22px;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            margin: 6px 0;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+            color: #ccc;
+            font-weight: bold;
+        }
+        
+        .nav-item:hover, .nav-item.active {
+            background: #ff0050;
+            color: white;
+            transform: translateX(-5px);
+        }
+        
+        .nav-item .icon {
+            font-size: 22px;
+            min-width: 35px;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-right: 280px;
+            padding: 30px;
+            min-height: 100vh;
+        }
+        
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .card {
             background: rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
-            border-radius: 30px;
-            padding: 40px;
-            max-width: 600px;
-            width: 100%;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border-radius: 25px;
+            padding: 35px;
+            max-width: 750px;
+            margin: 0 auto;
             border: 1px solid rgba(255,255,255,0.2);
         }
+        
         h1 {
             color: white;
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             font-size: 28px;
         }
+        
         .sub {
             color: #aaa;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
+            font-size: 14px;
         }
+        
         .input-group {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
+        
         input {
             flex: 1;
-            padding: 15px 20px;
+            padding: 14px 18px;
             border: none;
             border-radius: 50px;
-            font-size: 16px;
+            font-size: 15px;
             background: white;
             outline: none;
             min-width: 200px;
         }
+        
         button {
-            padding: 15px 30px;
+            padding: 14px 22px;
             background: #ff0050;
             color: white;
             border: none;
             border-radius: 50px;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
             transition: 0.3s;
             font-weight: bold;
         }
+        
         button:hover {
             background: #e60046;
             transform: scale(1.02);
         }
-        .loading {
-            display: none;
-            text-align: center;
-            color: white;
-            margin: 20px 0;
+        
+        .btn-paste {
+            background: #25f4ee;
+            color: #000;
         }
+        
+        .btn-paste:hover {
+            background: #0fd6d0;
+        }
+        
         .result {
             display: none;
             margin-top: 25px;
@@ -80,16 +156,29 @@
             border-radius: 20px;
             padding: 20px;
         }
-        .video-preview video {
-            width: 100%;
-            border-radius: 15px;
-            margin-bottom: 15px;
+        
+        .loading {
+            display: none;
+            text-align: center;
+            color: white;
+            margin: 20px 0;
         }
+        
+        .error {
+            color: #ff6b6b;
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+            font-size: 14px;
+        }
+        
         .download-links {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
+            margin-top: 15px;
         }
+        
         .download-btn {
             flex: 1;
             text-align: center;
@@ -99,66 +188,309 @@
             border-radius: 50px;
             text-decoration: none;
             font-weight: bold;
+            font-size: 14px;
         }
+        
         .download-btn.watermark {
             background: #fe2c55;
             color: white;
         }
-        .error {
-            color: #ff6b6b;
+        
+        .hero {
             text-align: center;
-            margin-top: 15px;
-            display: none;
+            color: white;
+            padding: 50px 20px;
         }
-        .info {
-            color: #aaa;
-            font-size: 12px;
+        
+        .hero h1 {
+            font-size: 42px;
+            margin-bottom: 15px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 15px;
+            margin-top: 40px;
+        }
+        
+        .feature-card {
+            background: rgba(255,255,255,0.1);
+            padding: 18px;
+            border-radius: 20px;
             text-align: center;
-            margin-top: 20px;
+            transition: 0.3s;
+            cursor: pointer;
         }
-        @media (max-width: 500px) {
-            .container { padding: 25px; }
-            button { padding: 12px 20px; }
+        
+        .feature-card:hover {
+            background: #ff0050;
+            transform: translateY(-5px);
+        }
+        
+        .feature-card .icon {
+            font-size: 35px;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+                padding: 15px 5px;
+            }
+            .sidebar h3, .nav-item span:not(.icon) {
+                display: none;
+            }
+            .main-content {
+                margin-right: 70px;
+                padding: 15px;
+            }
+            .nav-item {
+                justify-content: center;
+                padding: 12px;
+            }
+            .card {
+                padding: 20px;
+            }
+            .hero h1 {
+                font-size: 28px;
+            }
+        }
+        
+        video, img {
+            max-width: 100%;
+            border-radius: 15px;
+        }
+        
+        .quality-select {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+            color: white;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📥 تحميل فيديو تيك توك</h1>
-        <div class="sub">الصق رابط الفيديو ثم اضغط تحميل</div>
-        
-        <div class="input-group">
-            <input type="text" id="urlInput" placeholder="https://www.tiktok.com/@user/video/123456789">
-            <button id="downloadBtn">📲 تحميل</button>
+    <div class="sidebar">
+        <h3>📥 المنصات</h3>
+        <div class="nav-item" data-page="home">
+            <span class="icon">🏠</span>
+            <span>الرئيسية</span>
+        </div>
+        <div class="nav-item" data-page="tiktok">
+            <span class="icon">🎵</span>
+            <span>تيك توك</span>
+        </div>
+        <div class="nav-item" data-page="youtube">
+            <span class="icon">▶️</span>
+            <span>يوتيوب</span>
+        </div>
+        <div class="nav-item" data-page="instagram">
+            <span class="icon">📸</span>
+            <span>انستقرام</span>
+        </div>
+        <div class="nav-item" data-page="spotify">
+            <span class="icon">🎧</span>
+            <span>سبوتيفاي</span>
+        </div>
+        <div class="nav-item" data-page="facebook">
+            <span class="icon">🔵</span>
+            <span>فيسبوك</span>
+        </div>
+        <div class="nav-item" data-page="twitter">
+            <span class="icon">🐦</span>
+            <span>تويتر</span>
+        </div>
+        <div class="nav-item" data-page="pinterest">
+            <span class="icon">📌</span>
+            <span>بينترست</span>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <!-- الصفحة الرئيسية -->
+        <div id="home" class="page">
+            <div class="hero">
+                <h1>✨ مرحباً بك في المحمل الشامل ✨</h1>
+                <p>حمّل فيديوهات ومحتوى من 8 منصات مختلفة بجودة عالية</p>
+                <div class="features-grid">
+                    <div class="feature-card" onclick="goToPage('tiktok')"><span class="icon">🎵</span>تيك توك</div>
+                    <div class="feature-card" onclick="goToPage('youtube')"><span class="icon">▶️</span>يوتيوب</div>
+                    <div class="feature-card" onclick="goToPage('instagram')"><span class="icon">📸</span>انستقرام</div>
+                    <div class="feature-card" onclick="goToPage('spotify')"><span class="icon">🎧</span>سبوتيفاي</div>
+                    <div class="feature-card" onclick="goToPage('facebook')"><span class="icon">🔵</span>فيسبوك</div>
+                    <div class="feature-card" onclick="goToPage('twitter')"><span class="icon">🐦</span>تويتر</div>
+                    <div class="feature-card" onclick="goToPage('pinterest')"><span class="icon">📌</span>بينترست</div>
+                </div>
+            </div>
         </div>
         
-        <div class="loading" id="loading">⏳ جاري المعالجة...</div>
-        <div class="result" id="result"></div>
-        <div class="error" id="error"></div>
-        <div class="info">💡 تأكد من أن الرابط صحيح ومتاح للعموم</div>
+        <!-- تيك توك -->
+        <div id="tiktok" class="page">
+            <div class="card">
+                <h1>🎵 تحميل تيك توك</h1>
+                <div class="sub">بدون علامة مائية | فيديو + صوت</div>
+                <div class="input-group">
+                    <input type="text" id="tiktokUrl" placeholder="https://www.tiktok.com/@user/video/...">
+                    <button class="btn-paste" onclick="pasteToInput('tiktokUrl')">📋 لصق</button>
+                    <button onclick="downloadMedia('tiktok')">📲 تحميل</button>
+                </div>
+                <div id="tiktokLoading" class="loading">⏳ جاري المعالجة...</div>
+                <div id="tiktokResult" class="result"></div>
+                <div id="tiktokError" class="error"></div>
+            </div>
+        </div>
+        
+        <!-- يوتيوب -->
+        <div id="youtube" class="page">
+            <div class="card">
+                <h1>▶️ تحميل يوتيوب</h1>
+                <div class="sub">فيديو بجودات مختلفة أو MP3 فقط</div>
+                <div class="input-group">
+                    <input type="text" id="youtubeUrl" placeholder="https://www.youtube.com/watch?v=...">
+                    <button class="btn-paste" onclick="pasteToInput('youtubeUrl')">📋 لصق</button>
+                    <button onclick="downloadMedia('youtube')">📲 تحميل</button>
+                </div>
+                <div id="youtubeQuality" class="quality-select" style="display:none;"></div>
+                <div id="youtubeLoading" class="loading">⏳ جاري...</div>
+                <div id="youtubeResult" class="result"></div>
+                <div id="youtubeError" class="error"></div>
+            </div>
+        </div>
+        
+        <!-- انستقرام -->
+        <div id="instagram" class="page">
+            <div class="card">
+                <h1>📸 تحميل انستقرام</h1>
+                <div class="sub">فيديو، ريلز، صور، stories</div>
+                <div class="input-group">
+                    <input type="text" id="instagramUrl" placeholder="https://www.instagram.com/p/... أو reel/...">
+                    <button class="btn-paste" onclick="pasteToInput('instagramUrl')">📋 لصق</button>
+                    <button onclick="downloadMedia('instagram')">📲 تحميل</button>
+                </div>
+                <div id="instagramLoading" class="loading">⏳ جاري...</div>
+                <div id="instagramResult" class="result"></div>
+                <div id="instagramError" class="error"></div>
+            </div>
+        </div>
+        
+        <!-- سبوتيفاي -->
+        <div id="spotify" class="page">
+            <div class="card">
+                <h1>🎧 تحميل سبوتيفاي</h1>
+                <div class="sub">تحميل أغاني MP3 بجودة 320kbps</div>
+                <div class="input-group">
+                    <input type="text" id="spotifyUrl" placeholder="https://open.spotify.com/track/...">
+                    <button class="btn-paste" onclick="pasteToInput('spotifyUrl')">📋 لصق</button>
+                    <button onclick="downloadMedia('spotify')">📲 تحميل</button>
+                </div>
+                <div id="spotifyLoading" class="loading">⏳ جاري...</div>
+                <div id="spotifyResult" class="result"></div>
+                <div id="spotifyError" class="error"></div>
+            </div>
+        </div>
+        
+        <!-- فيسبوك -->
+        <div id="facebook" class="page">
+            <div class="card">
+                <h1>🔵 تحميل فيسبوك</h1>
+                <div class="sub">فيديو منشورات، ريلز، قصص</div>
+                <div class="input-group">
+                    <input type="text" id="facebookUrl" placeholder="https://www.facebook.com/.../videos/...">
+                    <button class="btn-paste" onclick="pasteToInput('facebookUrl')">📋 لصق</button>
+                    <button onclick="downloadMedia('facebook')">📲 تحميل</button>
+                </div>
+                <div id="facebookLoading" class="loading">⏳ جاري...</div>
+                <div id="facebookResult" class="result"></div>
+                <div id="facebookError" class="error"></div>
+            </div>
+        </div>
+        
+        <!-- تويتر -->
+        <div id="twitter" class="page">
+            <div class="card">
+                <h1>🐦 تحميل تويتر / X</h1>
+                <div class="sub">فيديو، GIF، صور</div>
+                <div class="input-group">
+                    <input type="text" id="twitterUrl" placeholder="https://twitter.com/user/status/...">
+                    <button class="btn-paste" onclick="pasteToInput('twitterUrl')">📋 لصق</button>
+                    <button onclick="downloadMedia('twitter')">📲 تحميل</button>
+                </div>
+                <div id="twitterLoading" class="loading">⏳ جاري...</div>
+                <div id="twitterResult" class="result"></div>
+                <div id="twitterError" class="error"></div>
+            </div>
+        </div>
+        
+        <!-- بينترست -->
+        <div id="pinterest" class="page">
+            <div class="card">
+                <h1>📌 تحميل بينترست</h1>
+                <div class="sub">تحميل صور وفيديو بدقة عالية</div>
+                <div class="input-group">
+                    <input type="text" id="pinterestUrl" placeholder="https://www.pinterest.com/pin/...">
+                    <button class="btn-paste" onclick="pasteToInput('pinterestUrl')">📋 لصق</button>
+                    <button onclick="downloadMedia('pinterest')">📲 تحميل</button>
+                </div>
+                <div id="pinterestLoading" class="loading">⏳ جاري...</div>
+                <div id="pinterestResult" class="result"></div>
+                <div id="pinterestError" class="error"></div>
+            </div>
+        </div>
     </div>
 
     <script>
-        const API_URL = '/api/tiktok';
-
-        document.getElementById('downloadBtn').addEventListener('click', async () => {
-            const url = document.getElementById('urlInput').value.trim();
+        function goToPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
+        }
+        
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const pageId = item.dataset.page;
+                goToPage(pageId);
+            });
+        });
+        
+        document.querySelector('[data-page="home"]').classList.add('active');
+        document.getElementById('home').classList.add('active');
+        
+        async function pasteToInput(inputId) {
+            try {
+                const text = await navigator.clipboard.readText();
+                document.getElementById(inputId).value = text;
+                showToast('✅ تم لصق الرابط', '#4caf50');
+            } catch(err) {
+                showToast('❌ فشل اللصق - تأكد من الإذن', '#f44336');
+            }
+        }
+        
+        function showToast(msg, bgColor) {
+            const div = document.createElement('div');
+            div.textContent = msg;
+            div.style.cssText = `position:fixed;bottom:20px;left:20px;background:${bgColor};color:white;padding:12px 24px;border-radius:50px;z-index:9999;font-weight:bold;box-shadow:0 4px 12px rgba(0,0,0,0.3);`;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 2500);
+        }
+        
+        async function downloadMedia(platform) {
+            const urlInput = document.getElementById(`${platform}Url`);
+            const url = urlInput?.value.trim();
             if (!url) {
-                showError('الرجاء إدخال رابط الفيديو');
+                showError(platform, 'الرجاء إدخال رابط صحيح');
                 return;
             }
             
-            if (!url.includes('tiktok.com')) {
-                showError('الرجاء إدخال رابط صحيح من تيك توك');
-                return;
-            }
-            
-            showLoading(true);
-            hideResult();
-            hideError();
+            showLoading(platform, true);
+            hideResult(platform);
+            hideError(platform);
             
             try {
-                const response = await fetch(API_URL, {
+                const response = await fetch(`/api/${platform}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ url: url })
@@ -167,51 +499,79 @@
                 const data = await response.json();
                 
                 if (!response.ok || !data.success) {
-                    throw new Error(data.error || 'فشل تحميل الفيديو');
+                    throw new Error(data.error || 'فشل في التحميل');
                 }
                 
-                displayResult(data);
-            } catch (err) {
-                showError(err.message || 'حدث خطأ، حاول مرة أخرى');
+                displayResult(platform, data);
+            } catch (error) {
+                showError(platform, error.message || 'حدث خطأ، حاول مرة أخرى');
             } finally {
-                showLoading(false);
+                showLoading(platform, false);
             }
-        });
+        }
         
-        function displayResult(data) {
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = `
-                <div class="video-preview">
-                    ${data.thumbnail ? `<img src="${data.thumbnail}" style="width:100%; border-radius:15px; margin-bottom:15px;">` : ''}
-                    ${data.video_url ? `<video controls src="${data.video_url}" style="width:100%; border-radius:15px; margin-bottom:15px;"></video>` : ''}
-                </div>
-                <div class="download-links">
-                    ${data.video_url ? `<a href="${data.video_url}" class="download-btn" download>🎬 بدون علامة مائية</a>` : ''}
-                    ${data.video_watermark ? `<a href="${data.video_watermark}" class="download-btn watermark" download>💧 مع علامة مائية</a>` : ''}
-                    ${data.music_url ? `<a href="${data.music_url}" class="download-btn">🎵 تحميل الصوت فقط</a>` : ''}
-                </div>
-            `;
+        function displayResult(platform, data) {
+            const resultDiv = document.getElementById(`${platform}Result`);
+            let content = '';
+            
+            if (data.thumbnail) {
+                content += `<img src="${data.thumbnail}" style="width:100%; border-radius:15px; margin-bottom:15px;">`;
+            }
+            
+            if (data.video_url) {
+                content += `<video controls src="${data.video_url}" style="width:100%; border-radius:15px; margin-bottom:15px;"></video>`;
+            } else if (data.image_urls && data.image_urls.length) {
+                content += '<div class="image-gallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;">';
+                data.image_urls.forEach(img => {
+                    content += `<img src="${img}" style="width:100%;border-radius:10px;">`;
+                });
+                content += '</div>';
+            }
+            
+            content += '<div class="download-links">';
+            if (data.video_url) {
+                content += `<a href="${data.video_url}" class="download-btn" download>📥 تحميل فيديو</a>`;
+            }
+            if (data.video_hd) {
+                content += `<a href="${data.video_hd}" class="download-btn" download>🎬 جودة عالية HD</a>`;
+            }
+            if (data.audio_url) {
+                content += `<a href="${data.audio_url}" class="download-btn" download>🎵 تحميل الصوت MP3</a>`;
+            }
+            if (data.image_urls && data.image_urls.length) {
+                content += `<a href="${data.image_urls[0]}" class="download-btn" download>🖼️ تحميل الصورة</a>`;
+            }
+            content += '</div>';
+            
+            resultDiv.innerHTML = content;
             resultDiv.style.display = 'block';
         }
         
-        function showLoading(show) {
-            document.getElementById('loading').style.display = show ? 'block' : 'none';
-            document.getElementById('downloadBtn').disabled = show;
+        function showLoading(platform, show) {
+            const loader = document.getElementById(`${platform}Loading`);
+            if (loader) loader.style.display = show ? 'block' : 'none';
         }
         
-        function showError(msg) {
-            const errorDiv = document.getElementById('error');
-            errorDiv.textContent = msg;
-            errorDiv.style.display = 'block';
+        function showError(platform, msg) {
+            const errDiv = document.getElementById(`${platform}Error`);
+            if (errDiv) {
+                errDiv.textContent = msg;
+                errDiv.style.display = 'block';
+                setTimeout(() => errDiv.style.display = 'none', 5000);
+            }
         }
         
-        function hideError() {
-            document.getElementById('error').style.display = 'none';
+        function hideError(platform) {
+            const errDiv = document.getElementById(`${platform}Error`);
+            if (errDiv) errDiv.style.display = 'none';
         }
         
-        function hideResult() {
-            document.getElementById('result').style.display = 'none';
-            document.getElementById('result').innerHTML = '';
+        function hideResult(platform) {
+            const resDiv = document.getElementById(`${platform}Result`);
+            if (resDiv) {
+                resDiv.style.display = 'none';
+                resDiv.innerHTML = '';
+            }
         }
     </script>
 </body>
